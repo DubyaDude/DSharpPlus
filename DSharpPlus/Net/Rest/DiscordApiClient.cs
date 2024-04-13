@@ -4746,6 +4746,7 @@ public sealed class DiscordApiClient
             IsTTS = builder.IsTTS,
             Embeds = builder.Embeds,
             Components = builder.Components,
+            Poll = builder.Poll,
         };
 
         if (builder.Mentions != null)
@@ -5746,7 +5747,8 @@ public sealed class DiscordApiClient
                 Mentions = new DiscordMentions(builder.Mentions ?? Mentions.All, builder.Mentions?.Any() ?? false),
                 Flags = builder.Flags,
                 Components = builder.Components,
-                Choices = builder.Choices
+                Choices = builder.Choices,
+                Poll = builder.Poll,
             }
             : null
         };
