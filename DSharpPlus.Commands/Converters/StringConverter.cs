@@ -4,16 +4,15 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using DSharpPlus.Commands.ParameterModifiers;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
-using DSharpPlus.Commands.Processors.TextCommands.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
 public class StringConverter : ISlashArgumentConverter<string>, ITextArgumentConverter<string>
 {
-    public ApplicationCommandOptionType ParameterType { get; init; } = ApplicationCommandOptionType.String;
+    public DiscordApplicationCommandOptionType ParameterType { get; init; } = DiscordApplicationCommandOptionType.String;
     public bool RequiresText { get; init; } = true;
 
     public Task<Optional<string>> ConvertAsync(TextConverterContext context, MessageCreateEventArgs eventArgs)

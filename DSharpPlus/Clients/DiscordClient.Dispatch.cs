@@ -612,7 +612,7 @@ public sealed partial class DiscordClient
                 foreach (DiscordOverwrite xo in xc._permissionOverwrites)
                 {
                     xo.Discord = this;
-                    xo._channel_id = xc.Id;
+                    xo.channelId = xc.Id;
                 }
             }
             foreach (DiscordThreadChannel xt in guild.Threads.Values)
@@ -691,7 +691,7 @@ public sealed partial class DiscordClient
         foreach (DiscordOverwrite xo in channel._permissionOverwrites)
         {
             xo.Discord = this;
-            xo._channel_id = channel.Id;
+            xo.channelId = channel.Id;
         }
 
         this._guilds[channel.GuildId.Value]._channels[channel.Id] = channel;
@@ -753,7 +753,7 @@ public sealed partial class DiscordClient
             foreach (DiscordOverwrite po in channel._permissionOverwrites)
             {
                 po.Discord = this;
-                po._channel_id = channel.Id;
+                po.channelId = channel.Id;
             }
 
             channel_new._permissionOverwrites.AddRange(channel._permissionOverwrites);
@@ -776,7 +776,7 @@ public sealed partial class DiscordClient
         channel.Discord = this;
 
         //if (channel.IsPrivate)
-        if (channel.Type == ChannelType.Group || channel.Type == ChannelType.Private)
+        if (channel.Type == DiscordChannelType.Group || channel.Type == DiscordChannelType.Private)
         {
             DiscordDmChannel? dmChannel = channel as DiscordDmChannel;
 
@@ -808,7 +808,7 @@ public sealed partial class DiscordClient
             {
                 Id = channelId,
                 Discord = this,
-                Type = ChannelType.Private,
+                Type = DiscordChannelType.Private,
                 Recipients = Array.Empty<DiscordUser>()
             };
 
@@ -882,7 +882,7 @@ public sealed partial class DiscordClient
 
         evt.Guild._scheduledEvents[evt.Id] = evt;
 
-        if (evt.Status is ScheduledGuildEventStatus.Completed)
+        if (evt.Status is DiscordScheduledGuildEventStatus.Completed)
         {
             await this._scheduledGuildEventCompleted.InvokeAsync(this, new ScheduledGuildEventCompletedEventArgs() { Event = evt });
         }
@@ -1014,7 +1014,7 @@ public sealed partial class DiscordClient
             foreach (DiscordOverwrite xo in xc._permissionOverwrites)
             {
                 xo.Discord = this;
-                xo._channel_id = xc.Id;
+                xo.channelId = xc.Id;
             }
         }
         foreach (DiscordThreadChannel xt in guild._threads.Values)
@@ -1199,7 +1199,7 @@ public sealed partial class DiscordClient
             foreach (DiscordOverwrite xo in xc._permissionOverwrites)
             {
                 xo.Discord = this;
-                xo._channel_id = xc.Id;
+                xo.channelId = xc.Id;
             }
         }
         foreach (DiscordThreadChannel xc in guild._threads.Values)
@@ -1705,7 +1705,7 @@ public sealed partial class DiscordClient
             {
                 Id = channelId,
                 Discord = this,
-                Type = ChannelType.Private,
+                Type = DiscordChannelType.Private,
                 Recipients = Array.Empty<DiscordUser>()
 
             };
@@ -1813,7 +1813,7 @@ public sealed partial class DiscordClient
             {
                 Id = channelId,
                 Discord = this,
-                Type = ChannelType.Private,
+                Type = DiscordChannelType.Private,
                 Recipients = new DiscordUser[] { usr }
             };
             this._privateChannels[channelId] = (DiscordDmChannel)channel;
@@ -1877,7 +1877,7 @@ public sealed partial class DiscordClient
             {
                 Id = channelId,
                 Discord = this,
-                Type = ChannelType.Private,
+                Type = DiscordChannelType.Private,
                 Recipients = new DiscordUser[] { usr }
             };
             this._privateChannels[channelId] = (DiscordDmChannel)channel;
@@ -1974,7 +1974,7 @@ public sealed partial class DiscordClient
             {
                 Id = channelId,
                 Discord = this,
-                Type = ChannelType.Private,
+                Type = DiscordChannelType.Private,
                 Recipients = Array.Empty<DiscordUser>()
             };
             this._privateChannels[channelId] = (DiscordDmChannel)channel;
@@ -2593,7 +2593,7 @@ public sealed partial class DiscordClient
             }
         }
 
-        if (interaction.Type is InteractionType.Component)
+        if (interaction.Type is DiscordInteractionType.Component)
         {
 
             interaction.Message.Discord = this;
@@ -2606,13 +2606,13 @@ public sealed partial class DiscordClient
 
             await this._componentInteractionCreated.InvokeAsync(this, cea);
         }
-        else if (interaction.Type is InteractionType.ModalSubmit)
+        else if (interaction.Type is DiscordInteractionType.ModalSubmit)
         {
             ModalSubmitEventArgs mea = new ModalSubmitEventArgs(interaction);
 
             await this._modalSubmitted.InvokeAsync(this, mea);
         }
-        else if (interaction.Data.Type is ApplicationCommandType.MessageContextMenu or ApplicationCommandType.UserContextMenu) // Context-Menu. //
+        else if (interaction.Data.Type is DiscordApplicationCommandType.MessageContextMenu or DiscordApplicationCommandType.UserContextMenu) // Context-Menu. //
         {
             ulong targetId = interaction.Data.Target.Value;
             DiscordUser targetUser = null;

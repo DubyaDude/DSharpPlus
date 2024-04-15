@@ -9,7 +9,7 @@ namespace DSharpPlus.Net.Abstractions;
 internal class RestApplicationCommandCreatePayload
 {
     [JsonProperty("type")]
-    public ApplicationCommandType Type { get; set; }
+    public DiscordApplicationCommandType Type { get; set; }
 
     [JsonProperty("name")]
     public string Name { get; set; }
@@ -34,10 +34,22 @@ internal class RestApplicationCommandCreatePayload
 
     [JsonProperty("default_member_permissions", NullValueHandling = NullValueHandling.Ignore)]
     [JsonConverter(typeof(DiscordPermissionsAsStringJsonConverter))]
-    public Permissions? DefaultMemberPermissions { get; set; }
+    public DiscordPermissions? DefaultMemberPermissions { get; set; }
 
     [JsonProperty("nsfw", NullValueHandling = NullValueHandling.Ignore)]
     public bool? NSFW { get; set; }
+
+    /// <summary>
+    /// Interaction context(s) where the command can be used.
+    /// </summary>
+    [JsonProperty("contexts", NullValueHandling = NullValueHandling.Ignore)]
+    public IEnumerable<DiscordInteractionContextType>? AllowedContexts { get; set; }
+
+    /// <summary>
+    /// Installation context(s) where the command is available.
+    /// </summary>
+    [JsonProperty("integration_types", NullValueHandling = NullValueHandling.Ignore)]
+    public IEnumerable<DiscordApplicationIntegrationType>? InstallTypes { get; set; }
 }
 
 internal class RestApplicationCommandEditPayload
@@ -64,16 +76,28 @@ internal class RestApplicationCommandEditPayload
     public Optional<bool> AllowDMUsage { get; set; }
 
     [JsonProperty("default_member_permissions", NullValueHandling = NullValueHandling.Ignore)]
-    public Optional<Permissions?> DefaultMemberPermissions { get; set; }
+    public Optional<DiscordPermissions?> DefaultMemberPermissions { get; set; }
 
     [JsonProperty("nsfw", NullValueHandling = NullValueHandling.Ignore)]
     public Optional<bool?> NSFW { get; set; }
+
+    /// <summary>
+    /// Interaction context(s) where the command can be used.
+    /// </summary>
+    [JsonProperty("contexts", NullValueHandling = NullValueHandling.Ignore)]
+    public Optional<IEnumerable<DiscordInteractionContextType>> AllowedContexts { get; set; }
+
+    /// <summary>
+    /// Installation context(s) where the command is available.
+    /// </summary>
+    [JsonProperty("integration_types", NullValueHandling = NullValueHandling.Ignore)]
+    public Optional<IEnumerable<DiscordApplicationIntegrationType>> InstallTypes { get; set; }
 }
 
 internal class RestInteractionResponsePayload
 {
     [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
-    public InteractionResponseType Type { get; set; }
+    public DiscordInteractionResponseType Type { get; set; }
 
     [JsonProperty("data", NullValueHandling = NullValueHandling.Ignore)]
     public DiscordInteractionApplicationCommandCallbackData? Data { get; set; }

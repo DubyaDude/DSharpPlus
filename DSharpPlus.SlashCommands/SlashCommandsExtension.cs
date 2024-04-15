@@ -185,7 +185,7 @@ public sealed class SlashCommandsExtension : BaseExtension
                         //Gets the attribute and methods in the group
 
                         bool allowDMs = subclassinfo.GetCustomAttribute<GuildOnlyAttribute>() is null;
-                        Permissions? v2Permissions = subclassinfo.GetCustomAttribute<SlashCommandPermissionsAttribute>()?.Permissions;
+                        DiscordPermissions? v2Permissions = subclassinfo.GetCustomAttribute<SlashCommandPermissionsAttribute>()?.Permissions;
 
                         SlashCommandGroupAttribute? groupAttribute = subclassinfo.GetCustomAttribute<SlashCommandGroupAttribute>();
                         IEnumerable<MethodInfo> submethods = subclassinfo.DeclaredMethods.Where(x => x.GetCustomAttribute<SlashCommandAttribute>() != null);
@@ -227,10 +227,12 @@ public sealed class SlashCommandsExtension : BaseExtension
 
                             IReadOnlyDictionary<string, string> nameLocalizations = this.GetNameLocalizations(submethod);
                             IReadOnlyDictionary<string, string> descriptionLocalizations = this.GetDescriptionLocalizations(submethod);
+                            IReadOnlyList<DiscordApplicationIntegrationType>? integrationTypes = this.GetInteractionCommandInstallTypes(submethod);
+                            IReadOnlyList<DiscordInteractionContextType>? contexts = this.GetInteractionCommandAllowedContexts(submethod);
 
                             //Creates the subcommand and adds it to the main command
-                            DiscordApplicationCommandOption subpayload = new DiscordApplicationCommandOption(commandAttribute.Name, commandAttribute.Description, ApplicationCommandOptionType.SubCommand, null, null, options, name_localizations: nameLocalizations, description_localizations: descriptionLocalizations);
-                            payload = new DiscordApplicationCommand(payload.Name, payload.Description, payload.Options?.Append(subpayload) ?? new[] { subpayload }, payload.DefaultPermission, allowDMUsage: allowDMs, defaultMemberPermissions: v2Permissions, nsfw: payload.NSFW);
+                            DiscordApplicationCommandOption subpayload = new DiscordApplicationCommandOption(commandAttribute.Name, commandAttribute.Description, DiscordApplicationCommandOptionType.SubCommand, null, null, options, name_localizations: nameLocalizations, description_localizations: descriptionLocalizations);
+                            payload = new DiscordApplicationCommand(payload.Name, payload.Description, payload.Options?.Append(subpayload) ?? new[] { subpayload }, payload.DefaultPermission, allowDMUsage: allowDMs, defaultMemberPermissions: v2Permissions, nsfw: payload.NSFW, integrationTypes: integrationTypes, contexts: contexts);
 
                             //Adds it to the method lists
                             commandmethods.Add(new(commandAttribute.Name, submethod));
@@ -266,7 +268,7 @@ public sealed class SlashCommandsExtension : BaseExtension
                                 IReadOnlyDictionary<string, string> nameLocalizations = this.GetNameLocalizations(subsubmethod);
                                 IReadOnlyDictionary<string, string> descriptionLocalizations = this.GetDescriptionLocalizations(subsubmethod);
 
-                                DiscordApplicationCommandOption subsubpayload = new DiscordApplicationCommandOption(commatt.Name, commatt.Description, ApplicationCommandOptionType.SubCommand, null, null, suboptions, name_localizations: nameLocalizations, description_localizations: descriptionLocalizations);
+                                DiscordApplicationCommandOption subsubpayload = new DiscordApplicationCommandOption(commatt.Name, commatt.Description, DiscordApplicationCommandOptionType.SubCommand, null, null, suboptions, name_localizations: nameLocalizations, description_localizations: descriptionLocalizations);
                                 options.Add(subsubpayload);
 
 
@@ -279,7 +281,7 @@ public sealed class SlashCommandsExtension : BaseExtension
                             AddContextMenus(subContextMethods);
 
                             //Adds the group to the command and method lists
-                            DiscordApplicationCommandOption subpayload = new DiscordApplicationCommandOption(subGroupAttribute.Name, subGroupAttribute.Description, ApplicationCommandOptionType.SubCommandGroup, null, null, options);
+                            DiscordApplicationCommandOption subpayload = new DiscordApplicationCommandOption(subGroupAttribute.Name, subGroupAttribute.Description, DiscordApplicationCommandOptionType.SubCommandGroup, null, null, options);
                             command.SubCommands.Add(new() { Name = subGroupAttribute.Name, Methods = currentMethods });
                             payload = new DiscordApplicationCommand(payload.Name, payload.Description, payload.Options?.Append(subpayload) ?? new[] { subpayload }, payload.DefaultPermission, allowDMUsage: allowDMs, defaultMemberPermissions: v2Permissions, nsfw: payload.NSFW);
 
@@ -327,11 +329,13 @@ public sealed class SlashCommandsExtension : BaseExtension
 
                             IReadOnlyDictionary<string, string> nameLocalizations = this.GetNameLocalizations(method);
                             IReadOnlyDictionary<string, string> descriptionLocalizations = this.GetDescriptionLocalizations(method);
+                            IReadOnlyList<DiscordApplicationIntegrationType>? integrationTypes = this.GetInteractionCommandInstallTypes(method);
+                            IReadOnlyList<DiscordInteractionContextType>? contexts = this.GetInteractionCommandAllowedContexts(method);
 
                             bool allowDMs = (method.GetCustomAttribute<GuildOnlyAttribute>() ?? method.DeclaringType.GetCustomAttribute<GuildOnlyAttribute>()) is null;
-                            Permissions? v2Permissions = (method.GetCustomAttribute<SlashCommandPermissionsAttribute>() ?? method.DeclaringType.GetCustomAttribute<SlashCommandPermissionsAttribute>())?.Permissions;
+                            DiscordPermissions? v2Permissions = (method.GetCustomAttribute<SlashCommandPermissionsAttribute>() ?? method.DeclaringType.GetCustomAttribute<SlashCommandPermissionsAttribute>())?.Permissions;
 
-                            DiscordApplicationCommand payload = new DiscordApplicationCommand(commandattribute.Name, commandattribute.Description, options, commandattribute.DefaultPermission, name_localizations: nameLocalizations, description_localizations: descriptionLocalizations, allowDMUsage: allowDMs, defaultMemberPermissions: v2Permissions, nsfw: commandattribute.NSFW);
+                            DiscordApplicationCommand payload = new DiscordApplicationCommand(commandattribute.Name, commandattribute.Description, options, commandattribute.DefaultPermission, name_localizations: nameLocalizations, description_localizations: descriptionLocalizations, allowDMUsage: allowDMs, defaultMemberPermissions: v2Permissions, nsfw: commandattribute.NSFW, integrationTypes: integrationTypes, contexts: contexts);
                             updateList.Add(payload);
                         }
 
@@ -352,8 +356,10 @@ public sealed class SlashCommandsExtension : BaseExtension
                         {
                             ContextMenuAttribute? contextAttribute = contextMethod.GetCustomAttribute<ContextMenuAttribute>();
                             bool allowDMUsage = (contextMethod.GetCustomAttribute<GuildOnlyAttribute>() ?? contextMethod.DeclaringType.GetCustomAttribute<GuildOnlyAttribute>()) is null;
-                            Permissions? permissions = (contextMethod.GetCustomAttribute<SlashCommandPermissionsAttribute>() ?? contextMethod.DeclaringType.GetCustomAttribute<SlashCommandPermissionsAttribute>())?.Permissions;
-                            DiscordApplicationCommand command = new DiscordApplicationCommand(contextAttribute.Name, null, type: contextAttribute.Type, defaultPermission: contextAttribute.DefaultPermission, allowDMUsage: allowDMUsage, defaultMemberPermissions: permissions, nsfw: contextAttribute.NSFW);
+                            DiscordPermissions? permissions = (contextMethod.GetCustomAttribute<SlashCommandPermissionsAttribute>() ?? contextMethod.DeclaringType.GetCustomAttribute<SlashCommandPermissionsAttribute>())?.Permissions;
+                            IReadOnlyList<DiscordApplicationIntegrationType>? integrationTypes = this.GetInteractionCommandInstallTypes(contextMethod);
+                            IReadOnlyList<DiscordInteractionContextType>? contexts = this.GetInteractionCommandAllowedContexts(contextMethod);
+                            DiscordApplicationCommand command = new DiscordApplicationCommand(contextAttribute.Name, null, type: contextAttribute.Type, defaultPermission: contextAttribute.DefaultPermission, allowDMUsage: allowDMUsage, defaultMemberPermissions: permissions, nsfw: contextAttribute.NSFW, integrationTypes: integrationTypes, contexts: contexts);
 
                             ParameterInfo[] parameters = contextMethod.GetParameters();
                             if (parameters?.Length is null or 0 || !ReferenceEquals(parameters.FirstOrDefault()?.ParameterType, typeof(ContextMenuContext)))
@@ -455,7 +461,7 @@ public sealed class SlashCommandsExtension : BaseExtension
             //Sets the type
             Type type = parameter.ParameterType;
             string commandName = parameter.Member.GetCustomAttribute<SlashCommandAttribute>()?.Name ?? parameter.Member.GetCustomAttribute<ContextMenuAttribute>().Name;
-            ApplicationCommandOptionType parametertype = this.GetParameterType(commandName, type);
+            DiscordApplicationCommandOptionType parametertype = this.GetParameterType(commandName, type);
 
             //Handles choices
             //From attributes
@@ -472,7 +478,7 @@ public sealed class SlashCommandsExtension : BaseExtension
                 choices = await this.GetChoiceAttributesFromProvider(choiceProviders, guildId);
             }
 
-            IEnumerable<ChannelType>? channelTypes = parameter.GetCustomAttribute<ChannelTypesAttribute>()?.ChannelTypes ?? null;
+            IEnumerable<DiscordChannelType>? channelTypes = parameter.GetCustomAttribute<ChannelTypesAttribute>()?.ChannelTypes ?? null;
 
             object? minimumValue = parameter.GetCustomAttribute<MinimumAttribute>()?.Value ?? null;
             object? maximumValue = parameter.GetCustomAttribute<MaximumAttribute>()?.Value ?? null;
@@ -493,6 +499,18 @@ public sealed class SlashCommandsExtension : BaseExtension
         }
 
         return options;
+    }
+
+    private IReadOnlyList<DiscordApplicationIntegrationType>? GetInteractionCommandInstallTypes(ICustomAttributeProvider method)
+    {
+        InteractionCommandInstallTypeAttribute[] attributes = (InteractionCommandInstallTypeAttribute[])method.GetCustomAttributes(typeof(InteractionCommandInstallTypeAttribute), false);
+        return attributes.FirstOrDefault()?.InstallTypes;
+    }
+
+    private IReadOnlyList<DiscordInteractionContextType>? GetInteractionCommandAllowedContexts(ICustomAttributeProvider method)
+    {
+        InteractionCommandAllowedContextsAttribute[] attributes = (InteractionCommandAllowedContextsAttribute[])method.GetCustomAttributes(typeof(InteractionCommandAllowedContextsAttribute), false);
+        return attributes.FirstOrDefault()?.AllowedContexts;
     }
 
     private IReadOnlyDictionary<string, string> GetNameLocalizations(ICustomAttributeProvider method)
@@ -566,50 +584,50 @@ public sealed class SlashCommandsExtension : BaseExtension
     }
 
     //Small method to get the parameter's type from its type
-    private ApplicationCommandOptionType GetParameterType(string commandName, Type type)
+    private DiscordApplicationCommandOptionType GetParameterType(string commandName, Type type)
     {
         if (type == typeof(string))
         {
-            return ApplicationCommandOptionType.String;
+            return DiscordApplicationCommandOptionType.String;
         }
 
         if (type == typeof(long) || type == typeof(long?))
         {
-            return ApplicationCommandOptionType.Integer;
+            return DiscordApplicationCommandOptionType.Integer;
         }
 
         if (type == typeof(bool) || type == typeof(bool?))
         {
-            return ApplicationCommandOptionType.Boolean;
+            return DiscordApplicationCommandOptionType.Boolean;
         }
 
         if (type == typeof(double) || type == typeof(double?))
         {
-            return ApplicationCommandOptionType.Number;
+            return DiscordApplicationCommandOptionType.Number;
         }
 
         if (type == typeof(DiscordChannel))
         {
-            return ApplicationCommandOptionType.Channel;
+            return DiscordApplicationCommandOptionType.Channel;
         }
 
         if (type == typeof(DiscordUser))
         {
-            return ApplicationCommandOptionType.User;
+            return DiscordApplicationCommandOptionType.User;
         }
 
         return type == typeof(DiscordRole)
-            ? ApplicationCommandOptionType.Role
+            ? DiscordApplicationCommandOptionType.Role
             : type == typeof(DiscordEmoji)
-            ? ApplicationCommandOptionType.String
+            ? DiscordApplicationCommandOptionType.String
             : type == typeof(TimeSpan?)
-            ? ApplicationCommandOptionType.String
+            ? DiscordApplicationCommandOptionType.String
             : type == typeof(SnowflakeObject)
-            ? ApplicationCommandOptionType.Mentionable
+            ? DiscordApplicationCommandOptionType.Mentionable
             : type.IsEnum || Nullable.GetUnderlyingType(type)?.IsEnum == true
-            ? ApplicationCommandOptionType.String
+            ? DiscordApplicationCommandOptionType.String
             : type == typeof(DiscordAttachment)
-            ? ApplicationCommandOptionType.Attachment
+            ? DiscordApplicationCommandOptionType.Attachment
             : throw new ArgumentException($"Cannot convert type! (Command: {commandName}) Argument types must be string, long, bool, double, TimeSpan?, DiscordChannel, DiscordUser, DiscordRole, DiscordEmoji, DiscordAttachment, SnowflakeObject, or an Enum.");
     }
 
@@ -629,14 +647,14 @@ public sealed class SlashCommandsExtension : BaseExtension
     {
         _ = Task.Run(async () =>
         {
-            if (e.Interaction is {Type: InteractionType.ApplicationCommand, Data.Type: ApplicationCommandType.SlashCommand})
+            if (e.Interaction is {Type: DiscordInteractionType.ApplicationCommand, Data.Type: DiscordApplicationCommandType.SlashCommand})
             {
                 StringBuilder qualifiedName = new StringBuilder(e.Interaction.Data.Name);
                 DiscordInteractionDataOption[] options = e.Interaction.Data.Options?.ToArray() ?? Array.Empty<DiscordInteractionDataOption>();
                 while (options.Any())
                 {
                     DiscordInteractionDataOption firstOption = options[0];
-                    if (firstOption.Type is not ApplicationCommandOptionType.SubCommandGroup and not ApplicationCommandOptionType.SubCommand)
+                    if (firstOption.Type is not DiscordApplicationCommandOptionType.SubCommandGroup and not DiscordApplicationCommandOptionType.SubCommand)
                     {
                         break;
                     }
@@ -662,7 +680,7 @@ public sealed class SlashCommandsExtension : BaseExtension
                     ResolvedUserMentions = e.Interaction.Data.Resolved?.Users?.Values.ToList(),
                     ResolvedRoleMentions = e.Interaction.Data.Resolved?.Roles?.Values.ToList(),
                     ResolvedChannelMentions = e.Interaction.Data.Resolved?.Channels?.Values.ToList(),
-                    Type = ApplicationCommandType.SlashCommand
+                    Type = DiscordApplicationCommandType.SlashCommand
                 };
 
                 try
@@ -719,7 +737,7 @@ public sealed class SlashCommandsExtension : BaseExtension
             }
 
             //Handles autcomplete interactions
-            if (e.Interaction.Type == InteractionType.AutoComplete)
+            if (e.Interaction.Type == DiscordInteractionType.AutoComplete)
             {
                 if (_errored)
                 {
@@ -1266,7 +1284,7 @@ public sealed class SlashCommandsExtension : BaseExtension
                 this.Client.Logger.LogWarning("""Autocomplete provider "{provider}" returned more than 25 choices. Only the first 25 are passed to Discord.""", nameof(provider));
             }
             
-            await interaction.CreateResponseAsync(InteractionResponseType.AutoCompleteResult, new DiscordInteractionResponseBuilder().AddAutoCompleteChoices(choices));
+            await interaction.CreateResponseAsync(DiscordInteractionResponseType.AutoCompleteResult, new DiscordInteractionResponseBuilder().AddAutoCompleteChoices(choices));
 
             await this._autocompleteExecuted.InvokeAsync(this,
                 new()
