@@ -119,7 +119,7 @@ public partial class CommandParameterBuilder
         }
 
         CommandParameterBuilder commandParameterBuilder = new();
-        commandParameterBuilder.WithAttributes(parameterInfo.GetCustomAttributes());
+        commandParameterBuilder.WithAttributes(Attribute.GetCustomAttributes(parameterInfo, true));
         commandParameterBuilder.WithType(parameterInfo.ParameterType);
         if (parameterInfo.HasDefaultValue)
         {

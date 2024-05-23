@@ -147,7 +147,7 @@ public class CommandBuilder
     {
         ArgumentNullException.ThrowIfNull(type, nameof(type));
 
-        RegisterToGuildsAttribute? registerToGuildsAttribute = type.GetCustomAttribute<RegisterToGuildsAttribute>();
+        RegisterToGuildsAttribute? registerToGuildsAttribute = type.GetCustomAttribute<RegisterToGuildsAttribute>(true);
         ulong[] totalGuildIds = registerToGuildsAttribute is not null
             ? guildIds.Concat(registerToGuildsAttribute.GuildIds).Distinct().ToArray()
             : guildIds;
@@ -181,7 +181,7 @@ public class CommandBuilder
         }
 
         CommandBuilder commandBuilder = new();
-        commandBuilder.WithAttributes(type.GetCustomAttributes());
+        commandBuilder.WithAttributes(Attribute.GetCustomAttributes(type, true));
         commandBuilder.WithSubcommands(subCommandBuilders);
         commandBuilder.WithGuildIds(totalGuildIds);
 
@@ -224,13 +224,13 @@ public class CommandBuilder
             throw new ArgumentException($"The command method \"{(method.DeclaringType is not null ? $"{method.DeclaringType.FullName}.{method.Name}" : method.Name)}\" must have a parameter and it must be a type of {nameof(CommandContext)}.", nameof(method));
         }
 
-        RegisterToGuildsAttribute? registerToGuildsAttribute = method.GetCustomAttribute<RegisterToGuildsAttribute>();
+        RegisterToGuildsAttribute? registerToGuildsAttribute = method.GetCustomAttribute<RegisterToGuildsAttribute>(true);
         ulong[] totalGuildIds = registerToGuildsAttribute is not null
             ? guildIds.Concat(registerToGuildsAttribute.GuildIds).Distinct().ToArray()
             : guildIds;
 
         CommandBuilder commandBuilder = new();
-        commandBuilder.WithAttributes(method.GetCustomAttributes());
+        commandBuilder.WithAttributes(Attribute.GetCustomAttributes(method, true));
         commandBuilder.WithDelegate(method, target);
         commandBuilder.WithParameters(parameters[1..].Select(CommandParameterBuilder.From));
         commandBuilder.WithGuildIds(totalGuildIds);
